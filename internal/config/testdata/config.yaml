@@ -1,0 +1,26 @@
+# PostgreSQL database configuration
+database:
+  url: postgres://user:pass@localhost:5432/ces?sslmode=disable
+
+# Kafka configuration
+kafka:
+  brokers:
+    - localhost:9092
+  vouchers:
+    topic: Hema.Loyalty.Voucher
+    consumer_group: ces-voucher-reminders
+
+# Selligent API configuration
+selligent:
+  base_url: https://api.selligent.example.com
+  api_key: test-api-key
+
+# Configurable reminder offsets for different voucher types (in days)
+reminder_offsets:
+  HEMA: 3
+  PREMIUM: 5
+  GIFT: 0
+
+# Voucher reminder scheduler configurations
+scheduler:
+  interval_seconds: 60
