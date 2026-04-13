@@ -17,6 +17,9 @@ func TestParse_ValidYAML_ParsesAllFields(t *testing.T) {
 	yaml := `
 database:
   url: postgres://user:pass@localhost:5432/ces?sslmode=disable
+  pool:
+    max_conns: 10
+    min_conns: 2
 kafka:
   brokers:
     - localhost:9092
@@ -36,6 +39,8 @@ scheduler:
 	cfg, err := config.Parse(strings.NewReader(yaml))
 	require.NoError(t, err)
 	assert.Equal(t, "postgres://user:pass@localhost:5432/ces?sslmode=disable", cfg.Database.URL)
+	assert.Equal(t, int32(10), cfg.Database.Pool.MaxConns)
+	assert.Equal(t, int32(2), cfg.Database.Pool.MinConns)
 	assert.Equal(t, []string{"localhost:9092"}, cfg.Kafka.Brokers)
 	assert.Equal(t, "Hema.Loyalty.Voucher", cfg.Kafka.Vouchers.Topic)
 	assert.Equal(t, "ces-voucher-reminders", cfg.Kafka.Vouchers.ConsumerGroup)

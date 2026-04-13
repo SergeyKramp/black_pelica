@@ -1,6 +1,9 @@
 # PostgreSQL database configuration
 database:
   url: postgres://user:pass@localhost:5432/ces?sslmode=disable
+  pool:
+    max_conns: 10
+    min_conns: 2
 
 # Kafka configuration
 kafka:

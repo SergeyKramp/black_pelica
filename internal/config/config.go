@@ -18,8 +18,18 @@ type Config struct {
 	Scheduler       SchedulerConfig `yaml:"scheduler"`
 }
 
+// DatabaseConfig holds PostgreSQL connection and connection pool settings.
 type DatabaseConfig struct {
-	URL string `yaml:"url"`
+	URL  string             `yaml:"url"`
+	Pool DatabasePoolConfig `yaml:"pool"`
+}
+
+// DatabasePoolConfig controls the size of the pgx connection pool.
+// MaxConns limits total open connections; MinConns keeps a warm baseline
+// to avoid cold-start latency after idle periods.
+type DatabasePoolConfig struct {
+	MaxConns int32 `yaml:"max_conns"`
+	MinConns int32 `yaml:"min_conns"`
 }
 
 type KafkaConfig struct {
