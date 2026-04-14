@@ -51,6 +51,17 @@ type SelligentConfig struct {
 	APIKey  string `yaml:"api_key"`
 }
 
+// ReminderOffset returns the number of days before expiry to send a reminder
+// for the given voucher characteristic. Returns (0, false) if the characteristic
+// is not configured or has an offset of zero, meaning no reminder should be sent.
+func (c *Config) ReminderOffset(characteristic string) (int, bool) {
+	days, ok := c.ReminderOffsets[characteristic]
+	if !ok || days == 0 {
+		return 0, false
+	}
+	return days, true
+}
+
 // Load expects a path to a file on the file system.
 // It opens it and returns the parsed config.
 func Load(path string) (*Config, error) {
