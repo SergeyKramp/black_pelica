@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"hema/ces/internal/reminder"
@@ -65,11 +66,18 @@ func (s *SelligentSender) SendReminders(ctx context.Context, reminders []reminde
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+s.apiKey)
 
+	slog.DebugContext(ctx, "sending reminder batch to selligent",
+		"count", len(reminders),
+		"url", s.baseURL+"/email/v1/messages/send",
+	)
+
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("send reminder emails: %w", err)
 	}
 	defer resp.Body.Close()
+
+	slog.DebugContext(ctx, "selligent response", "status", resp.StatusCode, "count", len(reminders))
 
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("selligent returned %d for batch of %d reminders", resp.StatusCode, len(reminders))

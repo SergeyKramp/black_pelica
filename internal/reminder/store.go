@@ -3,6 +3,7 @@ package reminder
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,6 +38,11 @@ func (s *PostgresStore) Upsert(ctx context.Context, reminder Reminder) error {
 	if err != nil {
 		return fmt.Errorf("upsert reminder %s: %w", reminder.ActivatedVoucherID, err)
 	}
+	slog.DebugContext(ctx, "upserted reminder",
+		"activatedVoucherId", reminder.ActivatedVoucherID,
+		"characteristic", reminder.Characteristic,
+		"sendAt", reminder.SendAt,
+	)
 	return nil
 }
 
@@ -54,6 +60,7 @@ func (s *PostgresStore) Cancel(ctx context.Context, activatedVoucherID string) e
 	if err != nil {
 		return fmt.Errorf("cancel reminder %s: %w", activatedVoucherID, err)
 	}
+	slog.DebugContext(ctx, "cancelled reminder", "activatedVoucherId", activatedVoucherID)
 	return nil
 }
 
@@ -93,8 +100,10 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 	}
 
 	if len(reminders) == 0 {
+		slog.DebugContext(ctx, "no due reminders found")
 		return nil
 	}
+	slog.DebugContext(ctx, "fetched due reminders", "count", len(reminders))
 
 	if err := process(reminders); err != nil {
 		return err
@@ -115,5 +124,9 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 		return fmt.Errorf("mark batch sent: %w", err)
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit batch: %w", err)
+	}
+	slog.DebugContext(ctx, "marked reminders as sent", "count", len(reminders))
+	return nil
 }

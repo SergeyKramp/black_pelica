@@ -85,7 +85,8 @@ func main() {
 }
 
 // activatedEvent builds a VoucherActivated message with a validity window that
-// expires 10 days from now, so a reminder offset of 3–5 days will be scheduled.
+// expires 1 minute from now, so any non-zero reminder offset will produce a
+// send_at in the past and the scheduler will pick it up immediately.
 func activatedEvent(activatedVoucherID, characteristic string) any {
 	return map[string]any{
 		"header": map[string]any{
@@ -98,7 +99,7 @@ func activatedEvent(activatedVoucherID, characteristic string) any {
 			"voucherDetails": map[string]any{
 				"programId":      "nl",
 				"voucherId":      "278",
-				"validUntil":     time.Now().Add(10 * 24 * time.Hour),
+				"validUntil":     time.Now().Add(time.Minute),
 				"characteristic": characteristic,
 			},
 		},

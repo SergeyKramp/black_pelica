@@ -24,7 +24,14 @@ import (
 
 func main() {
 	cfgPath := flag.String("config", "config.yaml", "path to the YAML configuration file")
+	debug := flag.Bool("debug", false, "enable debug logging")
 	flag.Parse()
+
+	if *debug {
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})))
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
