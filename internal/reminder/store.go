@@ -57,9 +57,9 @@ func (s *PostgresStore) Cancel(ctx context.Context, activatedVoucherID string) e
 	return nil
 }
 
-// RunBatch opens a transaction, selects up to limit due PENDING reminders using
-// SELECT FOR UPDATE SKIP LOCKED so concurrent workers each receive a disjoint set
-func (s *PostgresStore) RunBatch(ctx context.Context, limit int, process func([]Reminder) error) error {
+// ReminderBatch opens a transaction, selects up to limit due PENDING reminders using
+// SELECT FOR UPDATE SKIP LOCKED so concurrent workers each receive a disjoint set.
+func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process func([]Reminder) error) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)

@@ -42,8 +42,14 @@ type KafkaVouchersConfig struct {
 	ConsumerGroup string `yaml:"consumer_group"`
 }
 
+// SchedulerConfig controls how the reminder scheduler polls for due reminders.
+// WorkerCount
+// SELECT FOR UPDATE SKIP LOCKED, so increasing it raises throughput at
+// the cost of more database connections.
 type SchedulerConfig struct {
-	IntervalSeconds int `yaml:"interval_seconds"`
+	IntervalSeconds int `yaml:"interval_seconds"` // Interval in seconds between scheduler runs
+	WorkerCount     int `yaml:"worker_count"`     // Number of concurrent workers
+	BatchSize       int `yaml:"batch_size"`       // Number of rows to fetch per worker
 }
 
 type SelligentConfig struct {

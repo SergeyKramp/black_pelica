@@ -229,7 +229,7 @@ func TestRunBatch_DueReminder_CallsProcessAndMarksSent(t *testing.T) {
 	require.NoError(t, store.Upsert(context.Background(), r))
 
 	var processed []string
-	err := store.RunBatch(context.Background(), 10, func(reminders []reminder.Reminder) error {
+	err := store.ReminderBatch(context.Background(), 10, func(reminders []reminder.Reminder) error {
 		for _, r := range reminders {
 			processed = append(processed, r.ActivatedVoucherID)
 		}
@@ -264,7 +264,7 @@ func TestRunBatch_ProcessFailure_LeaveReminderPending(t *testing.T) {
 	}
 	require.NoError(t, store.Upsert(context.Background(), r))
 
-	err := store.RunBatch(context.Background(), 10, func(_ []reminder.Reminder) error {
+	err := store.ReminderBatch(context.Background(), 10, func(_ []reminder.Reminder) error {
 		return assert.AnError
 	})
 	require.Error(t, err)
@@ -296,7 +296,7 @@ func TestRunBatch_FutureReminder_IsNotProcessed(t *testing.T) {
 	require.NoError(t, store.Upsert(context.Background(), r))
 
 	var processed []string
-	err := store.RunBatch(context.Background(), 10, func(reminders []reminder.Reminder) error {
+	err := store.ReminderBatch(context.Background(), 10, func(reminders []reminder.Reminder) error {
 		for _, r := range reminders {
 			processed = append(processed, r.ActivatedVoucherID)
 		}

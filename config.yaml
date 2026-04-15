@@ -26,4 +26,6 @@ reminder_offsets:
 
 # Voucher reminder scheduler configurations
 scheduler:
-  interval_seconds: 60
+  interval_seconds: 3600 # 1 hour
+  worker_count: 5
+  batch_size: 10

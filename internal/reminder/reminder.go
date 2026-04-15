@@ -46,7 +46,6 @@ type Store interface {
 
 // BatchStore is an interface implemented by a store that supports batch processing of reminders.
 type BatchStore interface {
-	// RunBatch selects up to limit PENDING reminders that need to be sent and let's
-	// be processed by process.
-	RunBatch(ctx context.Context, limit int, process func(Reminder) error) error
+	// ReminderBatch selects up to limit PENDING reminders to be processed by the provided callback.
+	ReminderBatch(ctx context.Context, limit int, process func([]Reminder) error) error
 }
