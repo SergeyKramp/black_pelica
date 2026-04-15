@@ -1,0 +1,10 @@
+# Build output
+./server
+./producer
+./selligent-mock
+
+# VS Code
+.vscode/
+
+# Go
+__debug*
