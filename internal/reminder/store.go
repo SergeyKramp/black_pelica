@@ -59,11 +59,7 @@ func (s *PostgresStore) Cancel(ctx context.Context, activatedVoucherID string) e
 
 // RunBatch opens a transaction, selects up to limit due PENDING reminders using
 // SELECT FOR UPDATE SKIP LOCKED so concurrent workers each receive a disjoint set
-// of rows, then calls process for each reminder. Successfully processed reminders
-// are marked SENT within the same transaction. If process returns an error the
-// reminder is left PENDING and retried on the next tick. The transaction is
-// committed after all reminders in the batch have been handled.
-func (s *PostgresStore) RunBatch(ctx context.Context, limit int, process func(Reminder) error) error {
+func (s *PostgresStore) RunBatch(ctx context.Context, limit int, process func([]Reminder) error) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
@@ -96,19 +92,27 @@ func (s *PostgresStore) RunBatch(ctx context.Context, limit int, process func(Re
 		return fmt.Errorf("scan reminders: %w", err)
 	}
 
-	for _, r := range reminders {
-		if err := process(r); err != nil {
-			continue
-		}
-		if _, err := tx.Exec(ctx, `
-			UPDATE scheduled_reminders
-			SET    status     = 'SENT',
-			       updated_at = now()
-			WHERE  id = $1`,
-			r.ID,
-		); err != nil {
-			return fmt.Errorf("mark reminder sent %s: %w", r.ActivatedVoucherID, err)
-		}
+	if len(reminders) == 0 {
+		return nil
+	}
+
+	if err := process(reminders); err != nil {
+		return err
+	}
+
+	ids := make([]string, len(reminders))
+	for i, r := range reminders {
+		ids[i] = r.ID
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE scheduled_reminders
+		SET    status     = 'SENT',
+		       updated_at = now()
+		WHERE  id = ANY($1)`,
+		ids,
+	); err != nil {
+		return fmt.Errorf("mark batch sent: %w", err)
 	}
 
 	return tx.Commit(ctx)
