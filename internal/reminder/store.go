@@ -80,7 +80,7 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 		FROM   scheduled_reminders sr
 		JOIN   reminder_offsets ro ON sr.characteristic = ro.characteristic
 		WHERE  sr.status = 'PENDING'
-		AND    sr.valid_until - (ro.offset_days * interval '1 day') <= now()
+		AND    sr.valid_until <= now() + (ro.offset_days * interval '1 day')
 		ORDER  BY sr.valid_until - (ro.offset_days * interval '1 day')
 		LIMIT  $1
 		FOR UPDATE OF sr SKIP LOCKED`,
