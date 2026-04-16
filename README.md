@@ -69,41 +69,6 @@ Flags:
 | `-broker` | `localhost:9092` | Kafka broker address |
 | `-interval` | `5s` | Interval between produced events |
 
-## Configuration
-
-All settings live in `config.yaml`:
-
-```yaml
-database:
-  url: postgres://user:pass@localhost:5432/ces?sslmode=disable
-  pool:
-    max_conns: 10
-    min_conns: 2
-
-kafka:
-  brokers:
-    - localhost:9092
-  vouchers:
-    topic: Hema.Loyalty.Voucher
-    consumer_group: ces-voucher-reminders
-
-selligent:
-  base_url: http://localhost:8080
-  api_key: your-api-key
-
-# Days before expiry to send a reminder, per voucher type.
-# Omit a characteristic or set to 0 to disable reminders for that type.
-reminder_offsets:
-  HEMA: 3
-  PREMIUM: 5
-  GIFT: 1
-
-scheduler:
-  interval_seconds: 3600
-  worker_count: 5
-  batch_size: 10
-```
-
 ## Running tests
 
 Unit and integration tests (integration tests require Docker for Testcontainers):
