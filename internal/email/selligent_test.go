@@ -25,7 +25,7 @@ func reminders(n int) []reminder.Reminder {
 			HemaID:             fmt.Sprintf("hema-%d", i+1),
 			VoucherID:          "278",
 			Characteristic:     "HEMA",
-			SendAt:             time.Now(),
+			ValidUntil:         time.Now().Add(24 * time.Hour),
 		}
 	}
 	return result

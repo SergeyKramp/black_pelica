@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"hema/ces/internal/config"
 	"hema/ces/internal/consumer"
 
 	"github.com/IBM/sarama"
@@ -56,8 +55,7 @@ func kafkaMsg(t *testing.T, payload any) *sarama.ConsumerMessage {
 // Then: a reminder is upserted and the message is marked
 func TestConsumeClaim_VoucherActivated_UpsertsReminder(t *testing.T) {
 	store := &mockStore{}
-	cfg := &config.Config{ReminderOffsets: map[string]int{"HEMA": 3}}
-	c := consumer.NewConsumer(consumer.NewHandler(store, cfg))
+	c := consumer.NewConsumer(consumer.NewHandler(store))
 
 	session := &mockSession{ctx: context.Background()}
 	claim := &mockClaim{messages: make(chan *sarama.ConsumerMessage, 1)}
@@ -90,8 +88,7 @@ func TestConsumeClaim_VoucherActivated_UpsertsReminder(t *testing.T) {
 // Then: the reminder is cancelled and the message is marked
 func TestConsumeClaim_VoucherRedeemed_CancelsReminder(t *testing.T) {
 	store := &mockStore{}
-	cfg := &config.Config{}
-	c := consumer.NewConsumer(consumer.NewHandler(store, cfg))
+	c := consumer.NewConsumer(consumer.NewHandler(store))
 
 	session := &mockSession{ctx: context.Background()}
 	claim := &mockClaim{messages: make(chan *sarama.ConsumerMessage, 1)}
@@ -117,7 +114,7 @@ func TestConsumeClaim_VoucherRedeemed_CancelsReminder(t *testing.T) {
 // Then: the message is silently ignored and still marked (consumer does not stall)
 func TestConsumeClaim_UnknownEvent_MarksMessageWithoutError(t *testing.T) {
 	store := &mockStore{}
-	c := consumer.NewConsumer(consumer.NewHandler(store, &config.Config{}))
+	c := consumer.NewConsumer(consumer.NewHandler(store))
 
 	session := &mockSession{ctx: context.Background()}
 	claim := &mockClaim{messages: make(chan *sarama.ConsumerMessage, 1)}
@@ -140,7 +137,7 @@ func TestConsumeClaim_UnknownEvent_MarksMessageWithoutError(t *testing.T) {
 // Then: the message is still marked so the consumer does not stall
 func TestConsumeClaim_MalformedJSON_StillMarksMessage(t *testing.T) {
 	store := &mockStore{}
-	c := consumer.NewConsumer(consumer.NewHandler(store, &config.Config{}))
+	c := consumer.NewConsumer(consumer.NewHandler(store))
 
 	session := &mockSession{ctx: context.Background()}
 	claim := &mockClaim{messages: make(chan *sarama.ConsumerMessage, 1)}

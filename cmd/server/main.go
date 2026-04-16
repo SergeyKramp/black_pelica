@@ -68,7 +68,7 @@ func main() {
 	}
 	defer group.Close() //nolint:errcheck
 
-	handler := consumer.NewHandler(store, cfg)
+	handler := consumer.NewHandler(store)
 	cons := consumer.NewConsumer(handler)
 
 	// Scheduler.

@@ -25,15 +25,16 @@ func NewPostgresStore(pool *pgxpool.Pool) *PostgresStore {
 func (s *PostgresStore) Upsert(ctx context.Context, reminder Reminder) error {
 	_, err := s.pool.Exec(ctx, `
 		INSERT INTO scheduled_reminders
-			(activated_voucher_id, hema_id, voucher_id, program_id, characteristic, send_at, status, updated_at)
-		VALUES
-			($1, $2, $3, $4, $5, $6, 'PENDING', now())
+			(activated_voucher_id, hema_id, voucher_id, program_id, characteristic, valid_until, status, updated_at)
+		SELECT $1, $2, $3, $4, $5::varchar, $6, 'PENDING', now()
+		FROM   reminder_offsets
+		WHERE  characteristic = $5::varchar
 		ON CONFLICT (activated_voucher_id) DO UPDATE
-			SET send_at    = EXCLUDED.send_at,
-			    status     = 'PENDING',
-			    updated_at = now()
+			SET valid_until = EXCLUDED.valid_until,
+			    status      = 'PENDING',
+			    updated_at  = now()
 		WHERE scheduled_reminders.status = 'PENDING'`,
-		reminder.ActivatedVoucherID, reminder.HemaID, reminder.VoucherID, reminder.ProgramID, reminder.Characteristic, reminder.SendAt,
+		reminder.ActivatedVoucherID, reminder.HemaID, reminder.VoucherID, reminder.ProgramID, reminder.Characteristic, reminder.ValidUntil,
 	)
 	if err != nil {
 		return fmt.Errorf("upsert reminder %s: %w", reminder.ActivatedVoucherID, err)
@@ -41,7 +42,7 @@ func (s *PostgresStore) Upsert(ctx context.Context, reminder Reminder) error {
 	slog.DebugContext(ctx, "upserted reminder",
 		"activatedVoucherId", reminder.ActivatedVoucherID,
 		"characteristic", reminder.Characteristic,
-		"sendAt", reminder.SendAt,
+		"validUntil", reminder.ValidUntil,
 	)
 	return nil
 }
@@ -74,13 +75,15 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	rows, err := tx.Query(ctx, `
-		SELECT id, activated_voucher_id, hema_id, voucher_id, program_id, characteristic, send_at
-		FROM   scheduled_reminders
-		WHERE  status = 'PENDING'
-		AND    send_at <= now()
-		ORDER  BY send_at
+		SELECT sr.id, sr.activated_voucher_id, sr.hema_id, sr.voucher_id, sr.program_id,
+		       sr.characteristic, sr.valid_until
+		FROM   scheduled_reminders sr
+		JOIN   reminder_offsets ro ON sr.characteristic = ro.characteristic
+		WHERE  sr.status = 'PENDING'
+		AND    sr.valid_until - (ro.offset_days * interval '1 day') <= now()
+		ORDER  BY sr.valid_until - (ro.offset_days * interval '1 day')
 		LIMIT  $1
-		FOR UPDATE SKIP LOCKED`,
+		FOR UPDATE OF sr SKIP LOCKED`,
 		limit,
 	)
 	if err != nil {
@@ -91,7 +94,7 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 		var r Reminder
 		err := row.Scan(
 			&r.ID, &r.ActivatedVoucherID, &r.HemaID,
-			&r.VoucherID, &r.ProgramID, &r.Characteristic, &r.SendAt,
+			&r.VoucherID, &r.ProgramID, &r.Characteristic, &r.ValidUntil,
 		)
 		return r, err
 	})
@@ -127,6 +130,6 @@ func (s *PostgresStore) ReminderBatch(ctx context.Context, limit int, process fu
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit batch: %w", err)
 	}
-	slog.DebugContext(ctx, "marked reminders as sent", "count", len(reminders))
+	slog.DebugContext(ctx, "marked batch as sent", "count", len(reminders))
 	return nil
 }

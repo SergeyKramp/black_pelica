@@ -18,12 +18,6 @@ selligent:
   base_url: https://api.selligent.example.com
   api_key: test-api-key
 
-# Configurable reminder offsets for different voucher types (in days)
-reminder_offsets:
-  HEMA: 3
-  PREMIUM: 5
-  GIFT: 0
-
 # Voucher reminder scheduler configurations
 scheduler:
   interval_seconds: 3600

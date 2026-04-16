@@ -29,10 +29,6 @@ kafka:
 selligent:
   base_url: https://api.selligent.example.com
   api_key: test-api-key
-reminder_offsets:
-  HEMA: 3
-  PREMIUM: 5
-  GIFT: 0
 scheduler:
   interval_seconds: 60
 `
@@ -46,8 +42,6 @@ scheduler:
 	assert.Equal(t, "ces-voucher-reminders", cfg.Kafka.Vouchers.ConsumerGroup)
 	assert.Equal(t, "https://api.selligent.example.com", cfg.Selligent.BaseURL)
 	assert.Equal(t, "test-api-key", cfg.Selligent.APIKey)
-	assert.Equal(t, 3, cfg.ReminderOffsets["HEMA"])
-	assert.Equal(t, 5, cfg.ReminderOffsets["PREMIUM"])
 	assert.Equal(t, 60, cfg.Scheduler.IntervalSeconds)
 }
 

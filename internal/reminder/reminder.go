@@ -27,7 +27,7 @@ type Reminder struct {
 	VoucherID          string    // ID of the voucher being reminded about
 	ProgramID          string    // ID of the program the voucher belongs to
 	Characteristic     string    // Characteristic of the voucher being reminded about
-	SendAt             time.Time // Timestamp when the reminder is set to be sent
+	ValidUntil         time.Time // Timestamp when the voucher expires
 	Status             Status    // Status of the reminder (PENDING, SENT, CANCELLED)
 	CreatedAt          time.Time // Timestamp when the reminder was created
 	UpdatedAt          time.Time // Timestamp when the reminder was last updated
